@@ -86,4 +86,43 @@ public final class OrganizationDAO implements DAO<Organization> {
             System.out.println(e.getMessage());
         }
     }
+
+    public @NotNull List<String> selectFirstTenSuppliersAccordingToQuantityOfDeliveredProducts() {
+        final List<String> result = new ArrayList<>();
+        try (var statement = connection.createStatement()) {
+            try (var resultSet = statement.executeQuery("" +
+                    "SELECT organization.name FROM organization " +
+                    "INNER JOIN invoice ON organization.id = invoice.organization_id " +
+                    "INNER JOIN invoice_position ON invoice.id = invoice_position.invoice_id " +
+                    "ORDER BY invoice_position.count DESC " +
+                    "LIMIT 10")) {
+                while (resultSet.next()) {
+                    result.add(new String(resultSet.getString("name")));
+                }
+                return result;
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return result;
+    }
+
+    public @NotNull List<String> selectSuppliersWithAmountOfDeliveredProductsAboveSpecifiedQuantity(int amount) {
+        final List<String> result = new ArrayList<>();
+        try (var statement = connection.createStatement()) {
+            try (var resultSet = statement.executeQuery("" +
+                    "SELECT organization.name FROM organization " +
+                    "INNER JOIN invoice ON organization.id = invoice.organization_id " +
+                    "INNER JOIN invoice_position ON invoice.id = invoice_position.invoice_id " +
+                    "WHERE invoice_position.count > " + amount + " ")) {
+                while (resultSet.next()) {
+                    result.add(new String(resultSet.getString("name")));
+                }
+                return result;
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return result;
+    }
 }

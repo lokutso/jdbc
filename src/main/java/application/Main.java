@@ -66,14 +66,16 @@ public final class Main {
             }
             invoicePositionDAO.all().forEach(System.out::println);
 
-            System.out.println(selectFirstTenSuppliersAccordingToQuantityOfDeliveredProducts(invoicePositionDAO, invoiceDAO, organizationDAO));
-            System.out.println(selectSuppliersWithAmountOfDeliveredProductsAboveSpecifiedQuantity(400, invoicePositionDAO, invoiceDAO, organizationDAO));
+
+            System.out.println(organizationDAO.selectFirstTenSuppliersAccordingToQuantityOfDeliveredProducts());
+            System.out.println(organizationDAO.selectSuppliersWithAmountOfDeliveredProductsAboveSpecifiedQuantity(400));
             Map map;
             try {
                 map = forEachDayForEachProductCalculateQuantityAndAmountOfReceivedProductInSpecifiedPeriod(
                         new Date(new GregorianCalendar(2021, 1, 1).getTimeInMillis()),
                         new Date(new GregorianCalendar(2021, 3, 1).getTimeInMillis()),
                         invoiceDAO, invoicePositionDAO, productDAO);
+                System.out.println(map);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -81,22 +83,6 @@ public final class Main {
         } catch (SQLException exception) {
             System.err.println(exception.getMessage());
         }
-    }
-
-    public static List<Organization> selectFirstTenSuppliersAccordingToQuantityOfDeliveredProducts(
-            InvoicePositionDAO invoicePositionDAO, InvoiceDAO invoiceDAO, OrganizationDAO organizationDAO) {
-        List<Integer> invoicePositionList = invoicePositionDAO.all().stream()
-                .sorted(((invoicePosition, t1) -> t1.getCount() - invoicePosition.getCount()))
-                .map(InvoicePosition::getInvoiceId)
-                .collect(Collectors.toList());
-        List<Integer> invoiceList = invoiceDAO.all().stream()
-                .sorted(Comparator.comparingInt(invoice -> invoicePositionList.indexOf(invoice.getId())))
-                .map(Invoice::getOrganizationId)
-                .collect(Collectors.toList());
-        return organizationDAO.all().stream()
-                .sorted(Comparator.comparingInt(organization -> invoiceList.indexOf(organization.getId())))
-                .limit(10)
-                .collect(Collectors.toList());
     }
 
     public static List<Organization> selectSuppliersWithAmountOfDeliveredProductsAboveSpecifiedQuantity(
